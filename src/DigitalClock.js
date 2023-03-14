@@ -33,7 +33,7 @@ class DigitalClock extends React.Component {
   startTimer() {
     this.timer = setInterval(() => {
       this.setState(prevState => ({
-        currentTime: prevState.currentTime - 1,
+        currentTime: Math.max(prevState.currentTime - 1, 0),
       }));
     }, 1000);
   }
