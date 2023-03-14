@@ -1,0 +1,22 @@
+.sleek-boundary {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: 3px solid #333;
+  border-radius: 10px;
+  padding: 20px;
+  background-color: #222;
+  width: 120px; /* Reduced from 150px */
+  height: 40px; /* Reduced from 50px */
+}
+
+.clock-display {
+  font-family: 'Digital-7 Mono', monospace;
+  font-size: 40px;
+  color: #b73c3c;
+  text-align: center;
+}
+
+.active-clock {
+  box-shadow: 0 0 10px #b22222, 0 0 20px #b22222, 0 0 30px #b22222, 0 0 40px #b22222;
+}

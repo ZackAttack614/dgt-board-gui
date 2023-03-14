@@ -15,10 +15,6 @@ import WRook from './pieces/wR.svg';
 import WPawn from './pieces/wP.svg';
 
 
-// listen for the 'open' event
-
-
-
 class ChessBoard extends React.Component {
   constructor(props) {
     super(props);
@@ -63,7 +59,7 @@ class ChessBoard extends React.Component {
     this.updatePosition();
 
     const boardSize = 8;
-    const cellSize = 75;
+    const cellSize = 50;
     const boardWidth = boardSize * cellSize;
     const boardHeight = boardSize * cellSize;
     const notationSize = cellSize / 2;
@@ -87,10 +83,10 @@ class ChessBoard extends React.Component {
             {Array.from({ length: boardSize * boardSize }, (_, index) => {
               const row = Math.floor(index / boardSize);
               const column = index % boardSize;
-              const isDarkTan = (row + column) % 2 === 1;
+              const isScarlet = (row + column) % 2 === 1;
 
               return (
-                <div key={index} style={{ width: cellSize, height: cellSize, backgroundColor: isDarkTan ? "#b73c3c" : "#8c8c8c", position: "relative" }}>
+                <div key={index} style={{ width: cellSize, height: cellSize, backgroundColor: isScarlet ? "#b73c3c" : "#8c8c8c", position: "relative" }}>
                   {this.pieces[index] && <img src={this.pieces[index]} />}
                 </div>
               );
