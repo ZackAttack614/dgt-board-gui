@@ -12,10 +12,10 @@ root.render(
         <Chessboard />
       </div>
       <div className="clock-container">
+        <DigitalClock inputSeconds={1000} isActive={false} />
         <div className="first-clock">
-          <DigitalClock inputSeconds={1000} isActive={true} />
+          <DigitalClock inputSeconds={2000} isActive={true} />
         </div>
-        <DigitalClock inputSeconds={2000} isActive={false} />
       </div>
     </div>
   </React.StrictMode>

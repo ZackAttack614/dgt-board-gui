@@ -66,27 +66,36 @@ class ChessBoard extends React.Component {
     const columnNotation = ["A", "B", "C", "D", "E", "F", "G", "H"];
     const rowNotation = [8, 7, 6, 5, 4, 3, 2, 1];
 
+    const scarlet = "#b73c3c";
+    const gray = "#8c8c8c";
+    const white = "#ffffff";
+    
+    // Optional: Add subtle shading to the squares
+    const scarletShadow = "inset 0 0 5px rgba(0, 0, 0, 0.2)";
+    const grayShadow = "inset 0 0 5px rgba(0, 0, 0, 0.2)";
+
     return (
       <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
         <div style={{ position: "relative" }}>
-          <div style={{ position: "absolute", bottom: -notationSize, left: 0 }}>
+          <div style={{ position: "absolute", bottom: -notationSize, left: 0, color: white }}>
             {columnNotation.map((c, index) => (
               <div key={index} style={{ display: "inline-block", width: cellSize, height: notationSize, textAlign: "center" }}>{c}</div>
             ))}
           </div>
-          <div style={{ position: "absolute", top: 0, right: -notationSize }}>
+          <div style={{ position: "absolute", top: 0, right: -notationSize, color: white }}>
             {rowNotation.map((r, index) => (
               <div key={index} style={{ display: "flex", alignItems: "center", justifyContent: "center", width: notationSize, height: cellSize }}>{r}</div>
             ))}
           </div>
-          <div style={{ width: boardWidth, height: boardHeight, display: "flex", flexWrap: "wrap", border: "1px solid black" }}>
+          <div style={{ width: boardWidth, height: boardHeight, display: "flex", flexWrap: "wrap", border: `2px solid ${scarlet}` }}>
             {Array.from({ length: boardSize * boardSize }, (_, index) => {
+              // ...
               const row = Math.floor(index / boardSize);
               const column = index % boardSize;
               const isScarlet = (row + column) % 2 === 1;
 
               return (
-                <div key={index} style={{ width: cellSize, height: cellSize, backgroundColor: isScarlet ? "#b73c3c" : "#8c8c8c", position: "relative" }}>
+                <div key={index} style={{ width: cellSize, height: cellSize, backgroundColor: isScarlet ? scarlet : gray, position: "relative", boxShadow: isScarlet ? scarletShadow : grayShadow }}>
                   {this.pieces[index] && <img src={this.pieces[index]} />}
                 </div>
               );
