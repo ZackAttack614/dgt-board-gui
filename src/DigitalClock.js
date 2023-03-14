@@ -1,40 +1,66 @@
-import React, { Component } from 'react';
-import './DigitalClock.css'; // Import the CSS file for styling
+// DigitalClock.js
 
-class DigitalClock extends Component {
+import React from 'react';
+import './DigitalClock.css';
+
+class DigitalClock extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      minutes: 0,
-      seconds: 0
+      currentTime: props.time,
     };
+    this.timer = null;
   }
 
-  componentDidMount() {
-    this.parseSeconds(this.props.inputSeconds);
+  componentDidUpdate(prevProps) {
+    if (prevProps.isActive !== this.props.isActive) {
+      if (this.props.isActive) {
+        this.startTimer();
+      } else {
+        this.stopTimer();
+      }
+    }
+
+    if (prevProps.time !== this.props.time) {
+      this.setState({ currentTime: this.props.time });
+    }
   }
 
-  parseSeconds = (totalSeconds) => {
-    const minutes = Math.floor(totalSeconds / 60);
-    const seconds = totalSeconds % 60;
-    this.setState({ minutes, seconds });
-  };
+  componentWillUnmount() {
+    this.stopTimer();
+  }
 
-  renderClockDisplay = () => {
-    const { minutes, seconds } = this.state;
+  startTimer() {
+    this.timer = setInterval(() => {
+      this.setState(prevState => ({
+        currentTime: prevState.currentTime - 1,
+      }));
+    }, 1000);
+  }
 
-    return (
-      <div className="clock-display">
-        {minutes.toString().padStart(2, '0')}:{seconds.toString().padStart(2, '0')}
-      </div>
-    );
-  };
+  stopTimer() {
+    if (this.timer) {
+      clearInterval(this.timer);
+      this.timer = null;
+    }
+  }
+
+  formatTime(time) {
+    const minutes = Math.floor(time / 60);
+    const seconds = time % 60;
+    return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+  }
 
   render() {
     const { isActive } = this.props;
-    const clockClassName = isActive ? 'sleek-boundary active-clock' : 'sleek-boundary';
+    const { currentTime } = this.state;
+    const formattedTime = this.formatTime(currentTime);
 
-    return <div className={clockClassName}>{this.renderClockDisplay()}</div>;
+    return (
+      <div className={`sleek-boundary ${isActive ? 'active-clock' : ''}`}>
+        <div className="clock-display">{formattedTime}</div>
+      </div>
+    );
   }
 }
 

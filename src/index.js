@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import './index.css';
 import Chessboard from './Board';
 import DigitalClock from './DigitalClock';
+import ClockContainer from './ClockContainer';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
@@ -12,10 +13,7 @@ root.render(
         <Chessboard />
       </div>
       <div className="clock-container">
-        <DigitalClock inputSeconds={1000} isActive={false} />
-        <div className="first-clock">
-          <DigitalClock inputSeconds={2000} isActive={true} />
-        </div>
+        <ClockContainer />
       </div>
     </div>
   </React.StrictMode>
