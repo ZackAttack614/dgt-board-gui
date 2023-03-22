@@ -16,6 +16,7 @@ import WPawn from './pieces/wP.svg';
 
 
 class ChessBoard extends React.Component {
+  arrows;
   constructor(props) {
     super(props);
     this.pieceMap = {
@@ -35,6 +36,9 @@ class ChessBoard extends React.Component {
     this.pieces = {};
 
     this.state = { fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR' };
+
+    // Using an object so it can be a hashmap
+    this.arrows = {};
   }
 
   componentDidMount() {
@@ -66,6 +70,13 @@ class ChessBoard extends React.Component {
     const columnNotation = ["A", "B", "C", "D", "E", "F", "G", "H"];
     const rowNotation = [8, 7, 6, 5, 4, 3, 2, 1];
 
+    // Arrow stuff
+    const lineWidth = 15;
+    const headWidth = 7;
+    const arrowColors = ["rgba(10,180,40,0.8)"];
+    const arrowAngle = Math.PI/4;
+    const arrowHeadLength = 30;
+
     const scarlet = "#b73c3c";
     const gray = "#8c8c8c";
     const white = "#ffffff";
@@ -75,8 +86,95 @@ class ChessBoard extends React.Component {
     const grayShadow = "inset 0 0 5px rgba(0, 0, 0, 0.2)";
 
     return (
-      <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
+      <div onContextMenu={(e) => {
+        e.preventDefault()
+        // Get the square as an html element
+        let square = e.target;
+        // Could be a piece, so if it is get its parent
+        if (square.tagName === 'IMG') square = square.parentNode;
+        let newArrow = [+this.arrowStart, +square.dataset.key];
+        // Key of the arrow, should be unique
+
+        let key = +this.arrowStart * boardSize * boardSize +  +square.dataset.key;
+        // This is inefficient, I should probably represent the arrows as a hashtable
+        // But it is small so it's fine
+        if (this.arrows.hasOwnProperty(key)) {
+          delete this.arrows[key]
+        } else {
+          this.arrows[key] = newArrow;
+        }
+
+        // Get the canvas
+        let canvas = document.getElementById('arrow-canvas');
+        let ctx = canvas.getContext('2d')
+        
+        let w = canvas.width;
+        let h = canvas.height;
+        ctx.clearRect(0,0,w,h);
+        
+
+        // Get the starting x and y
+        const keyToXY = (key) => {
+          return [key % boardSize, Math.floor(key / boardSize)];
+        }
+
+        // Go from an x or y position to the canvas coordinate
+        const posToCoord = (val) => {
+          return val * cellSize + cellSize / 2;
+        }
+
+        // Draw all arrows
+        for (let arrowProp in this.arrows) {
+          let arrow = this.arrows[arrowProp];
+          // Draw the line
+          let from = keyToXY(arrow[0]).map(posToCoord);
+          let to = keyToXY(arrow[1]).map(posToCoord);
+          ctx.beginPath();
+          ctx.lineWidth = lineWidth;
+          ctx.strokeStyle=arrowColors[0];
+          ctx.moveTo(...from);
+          ctx.lineTo(...to);
+          ctx.stroke();
+
+          // Draw the arrow head
+          ctx.lineWidth = headWidth;
+          
+          // Get angle to the beginning
+          let angle = Math.atan2(from[1] - to[1], from[0] - to[0]);
+          // Angles of the arrowhead lines
+          let angles = [angle + arrowAngle, angle - arrowAngle];
+          for (let a of angles) {
+            // Draw each arrow line
+            ctx.beginPath();
+            ctx.moveTo(...to);
+            // Get the end of the arrow head line
+            let endHead = [to[0] + Math.cos(a) * arrowHeadLength, to[1] + Math.sin(a) * arrowHeadLength];
+            ctx.lineTo(...endHead);
+            ctx.stroke();
+          }
+
+
+        }
+        
+        
+        
+        
+      }} 
+      onMouseDown = {(e) => {
+        // if right click
+        if (e.button === 2) {
+            // Get the square as an html element
+          let square = e.target;
+          // Could be a piece, so if it is get its parent
+          if (square.tagName === 'IMG') square = square.parentNode;
+          this.arrowStart = square.dataset.key;
+        }
+      }
+
+      }
+      style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
         <div style={{ position: "relative" }}>
+        <canvas id = "arrow-canvas" width = {cellSize * boardSize} height = {cellSize * boardSize} style = {{position:"absolute", top:1, left: 1, zIndex:1000, pointerEvents:'none'}}></canvas>
           <div style={{ position: "absolute", bottom: -notationSize, left: 0, color: white }}>
             {columnNotation.map((c, index) => (
               <div key={index} style={{ display: "inline-block", width: cellSize, height: notationSize, textAlign: "center" }}>{c}</div>
@@ -95,16 +193,20 @@ class ChessBoard extends React.Component {
               const isScarlet = (row + column) % 2 === 1;
 
               return (
-                <div key={index} style={{ width: cellSize, height: cellSize, backgroundColor: isScarlet ? scarlet : gray, position: "relative", boxShadow: isScarlet ? scarletShadow : grayShadow }}>
+                <div key={index} data-key={index} style={{ width: cellSize, height: cellSize, backgroundColor: isScarlet ? scarlet : gray, position: "relative", boxShadow: isScarlet ? scarletShadow : grayShadow }}>
                   {this.pieces[index] && <img src={this.pieces[index]} />}
+                  
                 </div>
               );
             })}
           </div>
+          
         </div>
       </div>
     );
   }
+
+  
 
   updatePosition() {
     // Clear the previous pieces from the array.
