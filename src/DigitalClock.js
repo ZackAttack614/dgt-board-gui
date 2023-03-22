@@ -33,9 +33,9 @@ class DigitalClock extends React.Component {
   startTimer() {
     this.timer = setInterval(() => {
       this.setState(prevState => ({
-        currentTime: Math.max(prevState.currentTime - 1, 0),
+        currentTime: Math.max(prevState.currentTime - 0.1, 0),
       }));
-    }, 1000);
+    }, 100);
   }
 
   stopTimer() {
@@ -47,8 +47,9 @@ class DigitalClock extends React.Component {
 
   formatTime(time) {
     const minutes = Math.floor(time / 60);
-    const seconds = time % 60;
-    return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    const seconds = Math.floor(time % 60);
+    const tenths = Math.floor((time % 1) * 10);
+    return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}.${tenths.toString()}`;
   }
 
   render() {
