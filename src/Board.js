@@ -16,7 +16,6 @@ import WPawn from './pieces/wP.svg';
 
 
 class ChessBoard extends React.Component {
-  arrows;
   constructor(props) {
     super(props);
     this.pieceMap = {
@@ -39,6 +38,7 @@ class ChessBoard extends React.Component {
 
     // Using an object so it can be a hashmap
     this.arrows = {};
+    this.clearArrowsOnMove = true;
   }
 
   componentDidMount() {
@@ -73,7 +73,8 @@ class ChessBoard extends React.Component {
     // Arrow stuff
     const lineWidth = 15;
     const headWidth = 7;
-    const arrowColors = ["rgba(10,180,40,0.8)"];
+    const circleWidth = 5;
+    const arrowColors = ["rgba(10,180,40,0.8)", "rgba(240,60,60,0.8)", "rgba(10,10,240,0.8)"];
     const arrowAngle = Math.PI/4;
     const arrowHeadLength = 30;
 
@@ -92,7 +93,7 @@ class ChessBoard extends React.Component {
         let square = e.target;
         // Could be a piece, so if it is get its parent
         if (square.tagName === 'IMG') square = square.parentNode;
-        let newArrow = [+this.arrowStart, +square.dataset.key];
+        let newArrow = [+this.arrowStart, +square.dataset.key, this.controlPressed ? 1 : (this.altPressed ? 2 : 0)];
         // Key of the arrow, should be unique
 
         let key = +this.arrowStart * boardSize * boardSize +  +square.dataset.key;
@@ -129,9 +130,21 @@ class ChessBoard extends React.Component {
           // Draw the line
           let from = keyToXY(arrow[0]).map(posToCoord);
           let to = keyToXY(arrow[1]).map(posToCoord);
+          // Check if from and to are the same
+          ctx.strokeStyle=arrowColors[arrow[2]];
+          if (from[0] === to[0] && from[1] === to[1]) {
+            // Draw a circle at that position
+            ctx.beginPath();
+            ctx.lineWidth = circleWidth;
+            ctx.arc(...from, cellSize/2 - circleWidth/2, 0, 2 * Math.PI);
+            
+            ctx.stroke();
+
+            continue
+          };
           ctx.beginPath();
           ctx.lineWidth = lineWidth;
-          ctx.strokeStyle=arrowColors[0];
+          
           ctx.moveTo(...from);
           ctx.lineTo(...to);
           ctx.stroke();
@@ -163,11 +176,26 @@ class ChessBoard extends React.Component {
       onMouseDown = {(e) => {
         // if right click
         if (e.button === 2) {
+          e.preventDefault();
             // Get the square as an html element
           let square = e.target;
           // Could be a piece, so if it is get its parent
           if (square.tagName === 'IMG') square = square.parentNode;
           this.arrowStart = square.dataset.key;
+          // Check if control key is pressed
+          this.controlPressed = e.ctrlKey;
+          this.altPressed = e.altKey;
+        }
+        // If left click
+        else if (e.button === 0) {
+          // Remove all arrows
+          this.arrows = {};
+          let canvas = document.getElementById('arrow-canvas');
+          let ctx = canvas.getContext('2d')
+          let w = canvas.width;
+          let h = canvas.height;
+          ctx.clearRect(0,0,w,h);
+
         }
       }
 
@@ -211,6 +239,10 @@ class ChessBoard extends React.Component {
   updatePosition() {
     // Clear the previous pieces from the array.
     this.pieces = [];
+    // Clear the arrows
+    if (this.clearArrowsOnMove) {
+      this.arrows = {};
+    };
 
     // Parse the FEN to update the component's piece tracking
     for (let row = 0; row < 8; row++) {
