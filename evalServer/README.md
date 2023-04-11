@@ -1,0 +1,1 @@
+To start this, just open it in a terminal, run `npm install`, and then run `npm start`
