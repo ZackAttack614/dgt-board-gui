@@ -47,7 +47,6 @@ class ChessBoard extends React.Component {
         'q': true,
       }
     }
-    this.enPassant = null;
     // Using an object so it can be a hashmap
     this.arrows = {};
     this.clearArrowsOnMove = true;
@@ -83,6 +82,7 @@ class ChessBoard extends React.Component {
     ws.addEventListener('message', event => {
       const param = JSON.parse(event.data).param;
       if (param) {
+        console.log(param)
         if (param.board !== null && param.board !== undefined) {
            // Check if there was no change
           if (this.lastFen === param.board)
@@ -125,84 +125,74 @@ class ChessBoard extends React.Component {
           }
           
           let movedPiece = null;
-          let movedFrom = null;
-          let movedTo = null;
+          let fromColumn = null;
           for (let i = 0; i < 8 && movedPiece == null; i++) {
             for (let j = 0; j < 8; j++) {
               if (board[i][j] !== lastBoard[i][j]) {
-                movedPiece = board[i][j];
-                movedFrom = [j, i];
-                movedTo = [j, i];
-                break;
+                // Check if it is now empty
+                if (board[i][j] === '') {
+                  movedPiece = lastBoard[i][j];
+                  fromColumn = j;
+                  break;
+                }
+
               }
             }
           }
-          // Check if the piece is upper case
-          if (movedPiece === movedPiece.toUpperCase())
-            // This means it was a white piece, so set the current move to black
-            this.currentMove = 'b';
-          else
-            // This means it was a black piece, so set the current move to white
-            this.currentMove = 'w';
-          // Check if the piece is a pawn that moved two squares
-          if (movedPiece === 'p' && movedFrom[1] === 6 && movedTo[1] === 4) {
-            // This means it was a black pawn that moved two squares, so set the en passant square
-            this.enPassant = [movedTo[0], movedTo[1] + 1];
-          } else if (movedPiece === 'P' && movedFrom[1] === 1 && movedTo[1] === 3) {
-            // This means it was a white pawn that moved two squares, so set the en passant square
-            this.enPassant = [movedTo[0], movedTo[1] - 1];
-          } else {
-            // This means it was not a pawn that moved two squares, so remove the en passant square
-            this.enPassant = null;
-          }
-          // Change en passant array to a string
-          if (this.enPassant !== null) {
-            // Get the square as a string
-            this.enPassant = String.fromCharCode(this.enPassant[0] + 65) + (this.enPassant[1] + 1);
-          }
+          // If nothing has moved, that's confusing, but who knows
+          if (movedPiece != null) {
+            // Check if the piece is upper case
+            if (movedPiece === movedPiece.toUpperCase())
+              // This means it was a white piece, so set the current move to black
+              this.currentMove = 'b';
+            else
+              // This means it was a black piece, so set the current move to white
+              this.currentMove = 'w';
 
-          // Check if the piece is a king
-          if (movedPiece === 'k') {
-            // This means it was a black king, so remove the black king castling rights
-            this.castling['b']['k'] = false;
-            this.castling['b']['q'] = false;
-          } else if (movedPiece === 'K') {
-            // This means it was a white king, so remove the white king castling rights
-            this.castling['w']['k'] = false;
-            this.castling['w']['q'] = false;
-          }
 
-          // Check if the piece is a rook
-          if (movedPiece === 'r') {
-            // This means it was a black rook, so check if it was the left or right rook
-            if (movedFrom[0] === 0) {
-              // This means it was the left rook, so remove the black queen side castling rights
-              this.castling['b']['q'] = false;
-            } else if (movedFrom[0] === 7) {
-              // This means it was the right rook, so remove the black king side castling rights
+            // Check if the piece is a king
+            if (movedPiece === 'k') {
+              // This means it was a black king, so remove the black king castling rights
               this.castling['b']['k'] = false;
-            }
-          } else if (movedPiece === 'R') {
-            // This means it was a white rook, so check if it was the left or right rook
-            if (movedFrom[0] === 0) {
-              // This means it was the left rook, so remove the white queen side castling rights
-              this.castling['w']['q'] = false;
-            } else if (movedFrom[0] === 7) {
-              // This means it was the right rook, so remove the white king side castling rights
+              this.castling['b']['q'] = false;
+            } else if (movedPiece === 'K') {
+              // This means it was a white king, so remove the white king castling rights
               this.castling['w']['k'] = false;
+              this.castling['w']['q'] = false;
             }
+
+            // Check if the piece is a rook
+            if (movedPiece === 'r') {
+              // This means it was a black rook, so check if it was the left or right rook
+              if (fromColumn === 0) {
+                // This means it was the left rook, so remove the black queen side castling rights
+                this.castling['b']['q'] = false;
+              } else if (fromColumn === 7) {
+                // This means it was the right rook, so remove the black king side castling rights
+                this.castling['b']['k'] = false;
+              }
+            } else if (movedPiece === 'R') {
+              // This means it was a white rook, so check if it was the left or right rook
+              if (fromColumn === 0) {
+                // This means it was the left rook, so remove the white queen side castling rights
+                this.castling['w']['q'] = false;
+              } else if (fromColumn === 7) {
+                // This means it was the right rook, so remove the white king side castling rights
+                this.castling['w']['k'] = false;
+              }
+            }
+
+            // Send a message to the server for evaluation purposes
+            // Create an actual fen
+            let fen = param.board + ' ' + this.currentMove + ' ' + 
+              (this.castling['w']['k'] ? 'K' : '') + 
+              (this.castling['w']['q'] ? 'Q' : '') + 
+              (this.castling['b']['k'] ? 'k' : '') + 
+              (this.castling['b']['q'] ? 'q' : '') + ' - 0 1';
+              // I am not going to be able to make en passant work
+
+            this.ws.send(fen);
           }
-
-          // Send a message to the server for evaluation purposes
-          // Create an actual fen
-          let fen = param.board + ' ' + this.currentMove + ' ' + 
-            (this.castling['w']['k'] ? 'K' : '') + 
-            (this.castling['w']['q'] ? 'Q' : '') + 
-            (this.castling['b']['k'] ? 'k' : '') + 
-            (this.castling['b']['q'] ? 'q' : '') + ' ' + 
-            (this.enPassant ? this.enPassant : '') + ' - 0 1';
-
-          this.ws.send(fen);
 
           this.updatePosition();
           }

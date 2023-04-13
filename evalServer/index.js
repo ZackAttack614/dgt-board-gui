@@ -20,6 +20,7 @@ let client;
 // Listen for messages from stockfish
 stockfish.stdout.on('data', (data) => {
     // Log the data
+    // console.log(data.toString());
     // Check if the line says "score cp"
     if (data.includes("score cp")) {
         // Get the evaluation numeric value, which sill follow "score cp"
@@ -44,7 +45,7 @@ wss.on('connection', function connection(ws) {
         console.log('received: %s', message);
         // Send message to stockfish
         // Tell stockfish to stop first
-        stockfish.stdin.write('stop\n');
+        stockfish.stdin.write('\nstop\n');
         // Tell stockfish to start calculating
         stockfish.stdin.write('position fen ' + message + '\n');
         // Tell it to go but only output evaluations
